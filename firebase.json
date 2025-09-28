@@ -1,0 +1,52 @@
+{
+  "hosting": [
+    {
+      "target": "admin-dashboard",
+      "public": "admin-dashboard/dist",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+    
+      "rewrites": [ 
+        { 
+          "source": "**", 
+          "destination": "/index.html" 
+        } 
+      ]
+    },
+    {
+      "target": "conductor-app",
+      "public": "conductor-app/dist",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      
+      "rewrites": [ 
+        { 
+          "source": "**", 
+          "destination": "/index.html" 
+        } 
+      ]
+    },
+    {
+      "target": "student-portal",
+      "public": "student-portal/dist",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      
+      "rewrites": [ 
+        { 
+          "source": "**", 
+          "destination": "/index.html" 
+        } 
+      ]
+    }
+  ]
+}
