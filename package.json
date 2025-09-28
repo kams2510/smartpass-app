@@ -1,0 +1,10 @@
+{
+  "name": "smartpass-app-root",
+  "version": "1.0.0",
+  "description": "Root configuration for multi-app SmartPass system.",
+  "private": true,
+  "scripts": {
+    "build": "echo 'No root build step required.'",
+    "ci": "echo 'Installing root dependencies...'"
+  }
+}
