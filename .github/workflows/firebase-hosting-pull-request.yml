@@ -1,9 +1,10 @@
 # This file is for deploying to a temporary PREVIEW channel on Pull Requests (PRs).
+# The deployment creates a unique URL for review and cleanup automatically.
 
 name: Deploy all apps to Firebase Hosting on PR
 
 on:
-  pull_request: # CORRECTED: Triggered when a Pull Request is opened or updated
+  pull_request: # CORRECTED: Triggered when a Pull Request is opened, synced, or reopened
     types: [opened, synchronize, reopened]
     
 jobs:
@@ -11,7 +12,7 @@ jobs:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     
-    permissions: # Required permissions for preview channels and commenting
+    permissions: # Required for posting the preview URL back to the PR comments
       pull-requests: write 
       contents: read
       
@@ -21,7 +22,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20' # Use your app's Node version
 
       - name: Install Root Dependencies
         run: npm ci
@@ -32,12 +33,11 @@ jobs:
       - name: Deploy Admin Dashboard Preview
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          # Required to comment the preview URL back on the PR
-          repoToken: ${{ secrets.GITHUB_TOKEN }} 
+          repoToken: ${{ secrets.GITHUB_TOKEN }} # Allows posting the URL to PR comments
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SMARTPASS_APP_48365 }}
           projectId: smartpass-app-48365
           target: admin-dashboard 
-          # Deploying to a unique preview channel (channelId is omitted for auto-generation)
+          # channelId is omitted: Deploying without a channelId creates a unique preview channel per PR/branch.
 
       # --- 2. BUILD & PREVIEW CONDUCTOR APP ---
       - name: Build Conductor App
