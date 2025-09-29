@@ -1,58 +1,47 @@
-# This file has been customized for a multi-app monorepo structure.
+# This optimized file uses a matrix strategy for parallel execution and easier maintenance.
 
 name: Deploy all apps to Firebase Hosting on merge
 
 on:
   push:
     branches:
-      - main 
+      - main
 
 jobs:
-  build_and_deploy:
+  build-and-deploy-app:
     runs-on: ubuntu-latest
+    # Define a matrix to run a parallel job for each application
+    strategy:
+      matrix:
+        app: [admin-dashboard, conductor-app, student-portal]
+    
     steps:
-      - uses: actions/checkout@v4
-      
-      # Install Node.js environment
-      - name: Setup Node
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and cache dependencies
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          # Enable caching to speed up dependency installation on subsequent runs
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
-      # Install all project dependencies once in the root folder (if any root dependencies exist)
-      - name: Install Root Dependencies
+      - name: Install root dependencies
+        # This step runs only if a package-lock.json exists in the root
+        if: hashFiles('package-lock.json') != ''
         run: npm ci
 
-      # --- 1. BUILD & DEPLOY ADMIN DASHBOARD ---
-      - name: Build Admin Dashboard
-        # FIX: Installs dependencies and runs build in the sub-directory
-        run: npm ci --prefix admin-dashboard && npm run build --prefix admin-dashboard 
-      - name: Deploy Admin Dashboard
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SMARTPASS_APP_48365 }}
-          projectId: smartpass-app-48365
-          target: admin-dashboard
-          channelId: live
+      - name: Build ${{ matrix.app }}
+        # Installs dependencies and builds the specific app from the matrix
+        run: npm ci --prefix ${{ matrix.app }} && npm run build --prefix ${{ matrix.app }}
 
-      # --- 2. BUILD & DEPLOY CONDUCTOR APP ---
-      - name: Build Conductor App
-        run: npm ci --prefix conductor-app && npm run build --prefix conductor-app
-      - name: Deploy Conductor App
+      - name: Deploy ${{ matrix.app }} to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SMARTPASS_APP_48365 }}
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_SMARTPASS_APP_48365 }}'
           projectId: smartpass-app-48365
-          target: conductor-app
-          channelId: live
-
-      # --- 3. BUILD & DEPLOY STUDENT PORTAL ---
-      - name: Build Student Portal
-        run: npm ci --prefix student-portal && npm run build --prefix student-portal
-      - name: Deploy Student Portal
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SMARTPASS_APP_48365 }}
-          projectId: smartpass-app-48365
-          target: student-portal
+          # The target is now dynamic, using the app name from the matrix
+          target: ${{ matrix.app }}
           channelId: live
